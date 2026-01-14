@@ -7,11 +7,8 @@ const AuthContext = createContext<AuthState | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
 
-    const login = async (email: string, password: string, role: Role): Promise<boolean> => {
+    const login = async (username: string, password: string, role: Role): Promise<boolean> => {
         try {
-            // Using the actual password entered by the user
-            const username = email.split('@')[0];
-
             const res = await api.post('/auth/login', { username, password, role });
             setUser(res.data.user);
             return true;
