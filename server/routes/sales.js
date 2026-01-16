@@ -79,6 +79,7 @@ router.post('/', async (req, res) => {
             );
 
             // Update Stock
+            console.log(`Reducing stock for product ${item.id} by ${item.quantity}`);
             await connection.query(
                 `UPDATE products SET stock_qty = stock_qty - ? WHERE id = ?`,
                 [item.quantity, parseInt(item.id)]
@@ -90,8 +91,8 @@ router.post('/', async (req, res) => {
 
     } catch (err) {
         await connection.rollback();
-        console.error(err);
-        res.status(500).json({ message: 'Transaction failed' });
+        console.error('Error in POST /api/sales:', err);
+        res.status(500).json({ message: 'Transaction failed', error: err.message });
     } finally {
         connection.release();
     }
@@ -121,7 +122,7 @@ router.get('/', async (req, res) => {
 
         const salesWithItems = sales.map(s => {
             const saleItems = items.filter(i => i.sale_id === s.id).map(i => ({
-                id: i.product_id.toString(), // casting for frontend compatibility
+                id: i.product_id ? i.product_id.toString() : `del-${i.id}`, // fallback to sale_item id if product deleted
                 name: i.product_name,
                 price: Number(i.unit_price),
                 quantity: i.qty,
@@ -147,7 +148,7 @@ router.get('/', async (req, res) => {
 
         res.json(salesWithItems);
     } catch (err) {
-        console.error(err);
+        console.error('Error in GET /api/sales:', err);
         res.status(500).json({ message: err.message });
     }
 });

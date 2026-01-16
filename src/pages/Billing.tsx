@@ -9,7 +9,7 @@ import { useReactToPrint } from 'react-to-print';
 import type { Invoice } from '../context/InvoiceContext';
 
 const Billing = () => {
-    const { products } = useProducts();
+    const { products, fetchProducts } = useProducts();
     const { cart, addToCart, updateQuantity, clearCart, total } = useCart();
     const { user } = useAuth();
     const [searchTerm, setSearchTerm] = useState('');
@@ -55,6 +55,7 @@ const Billing = () => {
         });
 
         if (newInvoice) {
+            await fetchProducts(); // Refresh stock levels after successful sale
             setPrintingInvoice(newInvoice);
             // Allow render cycle to complete for hidden receipt
             setTimeout(() => {
@@ -122,19 +123,26 @@ const Billing = () => {
                             {filteredProducts.map(product => (
                                 <button
                                     key={product.id}
-                                    onClick={() => addToCart(product)}
-                                    className="bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition-all text-left flex flex-col group border border-transparent hover:border-blue-500 relative overflow-hidden"
+                                    onClick={() => product.stock > 0 && addToCart(product)}
+                                    disabled={product.stock <= 0}
+                                    className={`bg-white p-4 rounded-xl shadow-sm transition-all text-left flex flex-col group border border-transparent relative overflow-hidden ${product.stock > 0
+                                        ? 'hover:shadow-md hover:border-blue-500'
+                                        : 'opacity-75 cursor-not-allowed grayscale-[0.5]'
+                                        }`}
                                 >
-                                    <div className="absolute top-0 right-0 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-bl-lg opacity-0 group-hover:opacity-100 transition-opacity">
-                                        ADD
+                                    <div className={`absolute top-0 right-0 text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg transition-opacity ${product.stock > 0
+                                        ? 'bg-blue-500 opacity-0 group-hover:opacity-100'
+                                        : 'bg-red-500 opacity-100'
+                                        }`}>
+                                        {product.stock > 0 ? 'ADD' : 'OUT OF STOCK'}
                                     </div>
                                     <div className="bg-gray-50 w-12 h-12 rounded-lg mb-3 flex items-center justify-center">
-                                        <Shirt className="w-6 h-6 text-gray-400" />
+                                        <Shirt className={`w-6 h-6 ${product.stock > 0 ? 'text-gray-400' : 'text-red-300'}`} />
                                     </div>
-                                    <h3 className="font-semibold text-gray-800 truncate w-full mb-1">{product.name}</h3>
+                                    <h3 className={`font-semibold truncate w-full mb-1 ${product.stock > 0 ? 'text-gray-800' : 'text-gray-500'}`}>{product.name}</h3>
                                     <p className="text-xs text-gray-500 mb-2 truncate">{product.barcode}</p>
                                     <div className="mt-auto flex justify-between items-center w-full">
-                                        <span className="font-bold text-blue-600">Rs. {product.price.toFixed(2)}</span>
+                                        <span className={`font-bold ${product.stock > 0 ? 'text-blue-600' : 'text-gray-400'}`}>Rs. {product.price.toFixed(2)}</span>
                                         <span className={`text-xs px-2 py-0.5 rounded-full ${product.stock > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                                             {product.stock} left
                                         </span>
