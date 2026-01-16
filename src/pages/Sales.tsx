@@ -27,7 +27,7 @@ const Sales = () => {
     const filteredTotal = filteredInvoices.reduce((sum, inv) => sum + inv.total, 0);
 
     return (
-        <div className="p-8 max-w-7xl mx-auto w-full overflow-y-auto">
+        <div className="p-8 max-w-7xl mx-auto w-full h-full overflow-y-auto">
             <div className="flex justify-between items-end mb-8">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-800">Sales Reports</h1>
